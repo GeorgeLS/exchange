@@ -48,8 +48,7 @@ The server supports the following command line options:
 If you don't provide TLS configuration, the server will run in `http` mode and a warning will be printed stating so.
 
 By default, the server will log to stdout messages up to `WARN` level. You can control the logging level using
-`RUST_LOG`\
-environment variable.
+`RUST_LOG` environment variable.
 
 ## Usage
 
