@@ -5,15 +5,16 @@
 I've found myself many times wanting to share some files with friends or even myself.\
 In that case, what we usually do is use either Messenger or GMail as a quick solution.
 
-However, apart from the fact that I might now want my files to be uploaded in one of the aforementioned\
+However, apart from the fact that I might not want my files to be uploaded in one of the aforementioned\
 product servers, these solutions appear to be restricting in what types of files and sizes you can upload.
 
-For that reason, I thought that it would be fun to create my own upload server for that purpose which I can self-host.\
-This is what this _project_ is about.
+For that reason, I thought that it would be fun to create my own upload server for that purpose which\
+I can self-host. This is what this _project_ is about.
 
-This is a single/minimal upload/download server that requires no setup (apart from TLS configuration) that also uses\
-Server Side Rendering in order to provide a frontend interface. I'm really bad at frontend development so please take\
-that with a grain of salt. I might do a native client implementation in the future.
+This is a single/minimal upload/download server that requires no setup (apart from TLS configuration) that also\
+uses Server Side Rendering in order to provide a frontend interface.\
+I'm really bad at frontend development so please take that with a grain of salt.\
+I might do a native client implementation in the future.
 
 ## Building the server
 
