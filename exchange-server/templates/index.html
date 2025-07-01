@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>File Upload</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-6">
+<div class="w-full max-w-2xl bg-white shadow-lg rounded-xl p-8">
+    <h1 class="text-2xl font-bold text-gray-800 mb-6">📤 Share files</h1>
+
+    <!-- File Picker -->
+    <label class="flex items-center gap-4 mb-6 cursor-pointer">
+        <input type="file" id="fileInput" multiple class="hidden"/>
+        <span class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition">
+        + Select Files
+      </span>
+        <span class="text-sm text-gray-500">You can choose multiple files</span>
+    </label>
+
+    <!-- File List -->
+    <ul id="fileList" class="space-y-3 mb-6">
+        <!-- Files will be listed here -->
+    </ul>
+
+    <!-- Upload Button -->
+    <button id="uploadBtn"
+            class="bg-green-600 text-white px-6 py-2 rounded-md font-semibold hover:bg-green-700 transition disabled:opacity-50"
+            disabled
+    >
+        🚀 Upload Files
+    </button>
+
+    <!-- Status -->
+    <p id="status" class="mt-4 text-sm text-gray-600"></p>
+</div>
+
+<script>
+    function humanReadableSize(bytes) {
+        if (bytes === 0) return "0 Bytes";
+        const k = 1024;
+        const sizes = ["Bytes", "KB", "MB", "GB", "TB"];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+    }
+
+    const fileInput = document.getElementById("fileInput");
+    const fileList = document.getElementById("fileList");
+    const uploadBtn = document.getElementById("uploadBtn");
+    const statusEl = document.getElementById("status");
+
+    let selectedFiles = [];
+
+    fileInput.addEventListener("change", () => {
+        selectedFiles = Array.from(fileInput.files);
+        fileList.innerHTML = "";
+        statusEl.textContent = "";
+
+        if (selectedFiles.length === 0) {
+            uploadBtn.disabled = true;
+            return;
+        }
+
+        selectedFiles.forEach(file => {
+            const li = document.createElement("li");
+            li.className = "flex items-center justify-between bg-gray-50 border border-gray-200 rounded-lg p-3 shadow-sm";
+
+            const fileInfo = document.createElement("div");
+            fileInfo.className = "flex items-center gap-3";
+
+            const icon = document.createElement("span");
+            icon.textContent = "📄";
+            icon.className = "text-xl";
+
+            const name = document.createElement("span");
+            name.className = "text-gray-800 font-medium";
+            name.textContent = file.name;
+
+            fileInfo.appendChild(icon);
+            fileInfo.appendChild(name);
+
+            const size = document.createElement("span");
+            size.className = "text-sm text-gray-500";
+            size.textContent = `${humanReadableSize(file.size)}`;
+
+            li.appendChild(fileInfo);
+            li.appendChild(size);
+            fileList.appendChild(li);
+        });
+
+        uploadBtn.disabled = false;
+    });
+
+    uploadBtn.addEventListener("click", async () => {
+        if (selectedFiles.length === 0) return;
+
+        uploadBtn.disabled = true;
+
+        try {
+            const formData = new FormData();
+
+            selectedFiles.forEach(file => {
+                formData.append("file[]", file);
+
+                const metadata = {
+                    path: file.name
+                };
+
+                const metadataBlob = new Blob([JSON.stringify(metadata)], {
+                    type: "application/json"
+                });
+
+                formData.append("metadata[]", metadataBlob);
+            });
+
+            statusEl.textContent = "⬆️ Uploading files...";
+
+            const uploadRes = await fetch("/upload", {
+                method: "POST",
+                body: formData
+            });
+
+            if (!uploadRes.ok) {
+                const reason = await uploadRes.text();
+                throw new Error(`Failed to upload files: ${reason}`);
+            }
+
+            const {uuid} = await uploadRes.json();
+
+            const finalUrl = `${window.location.origin}/${uuid}`;
+
+            statusEl.innerHTML = `
+    ✅ Upload complete!<br/>
+    🔗 <a href="${finalUrl}" class="text-blue-600 underline" target="_blank">${finalUrl}</a>
+    <button id="copyBtn" class="ml-2 text-sm text-gray-600 underline">Copy</button>
+  `;
+
+            fileList.innerHTML = "";
+            selectedFiles = [];
+            fileInput.value = "";
+
+            // Add copy-to-clipboard functionality
+            setTimeout(() => {
+                const copyBtn = document.getElementById("copyBtn");
+                copyBtn?.addEventListener("click", () => {
+                    navigator.clipboard.writeText(finalUrl);
+                    copyBtn.textContent = "Copied!";
+                });
+            }, 0);
+
+            uploadBtn.disabled = true;
+        } catch (err) {
+            console.error(err);
+            statusEl.textContent = `❌ Error during upload.\n${err}`;
+            uploadBtn.disabled = false;
+        }
+    });
+</script>
+</body>
+</html>
